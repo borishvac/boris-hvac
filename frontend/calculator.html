@@ -1,0 +1,1281 @@
+<!--
+  Калькулятор сметы «вентиляция и кондиционирование под ключ»
+  Вставка в Tilda: блок T123 «HTML-код».
+
+  Что настроить (помечено в коде стрелками >>>>):
+  1. CATALOG_URL — URL вашего catalog.json (на GitHub Pages или своём хостинге)
+  2. TILDA_FORM_ID — id вашей формы Tilda для приёма лидов
+     (либо TILDA_WEBHOOK_URL, см. ниже)
+  3. COMPANY — название компании, телефон, email для шапки PDF
+
+  Все коммерческие правила вынесены в константы в начале <script>.
+-->
+
+<div id="bz-calc-root">
+  <style>
+    /* ====================== Стили ====================== */
+    #bz-calc-root {
+      --bz-fg: #1a1a1a;
+      --bz-fg-muted: #6b7280;
+      --bz-bg: #ffffff;
+      --bz-bg-soft: #f7f7f9;
+      --bz-bg-accent: #eef4ff;
+      --bz-border: #e5e7eb;
+      --bz-primary: #2563eb;
+      --bz-primary-hover: #1e40af;
+      --bz-warn: #b45309;
+      --bz-warn-bg: #fef3c7;
+      --bz-success: #047857;
+      --bz-radius: 10px;
+      --bz-radius-sm: 6px;
+      --bz-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: var(--bz-font);
+      color: var(--bz-fg);
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px;
+      line-height: 1.5;
+      box-sizing: border-box;
+    }
+    #bz-calc-root *, #bz-calc-root *::before, #bz-calc-root *::after { box-sizing: border-box; }
+    #bz-calc-root h2 { font-size: 22px; font-weight: 600; margin: 0 0 8px; }
+    #bz-calc-root h3 { font-size: 18px; font-weight: 600; margin: 0 0 16px; }
+    #bz-calc-root .bz-subtitle { color: var(--bz-fg-muted); margin: 0 0 24px; }
+    #bz-calc-root .bz-card {
+      background: var(--bz-bg);
+      border: 1px solid var(--bz-border);
+      border-radius: var(--bz-radius);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    #bz-calc-root .bz-step-progress {
+      display: flex; gap: 8px; margin-bottom: 24px;
+    }
+    #bz-calc-root .bz-step-progress div {
+      flex: 1; height: 4px; background: var(--bz-border); border-radius: 2px;
+    }
+    #bz-calc-root .bz-step-progress div.active { background: var(--bz-primary); }
+    #bz-calc-root .bz-grid {
+      display: grid; gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    #bz-calc-root label.bz-field {
+      display: flex; flex-direction: column; gap: 6px;
+      font-size: 14px; color: var(--bz-fg);
+    }
+    #bz-calc-root label.bz-field .bz-hint {
+      font-size: 12px; color: var(--bz-fg-muted); margin-top: 2px;
+    }
+    #bz-calc-root input[type=number], #bz-calc-root input[type=text], #bz-calc-root input[type=tel],
+    #bz-calc-root select {
+      font: inherit; font-size: 15px;
+      padding: 10px 12px;
+      border: 1px solid var(--bz-border);
+      border-radius: var(--bz-radius-sm);
+      background: var(--bz-bg);
+      color: var(--bz-fg);
+      transition: border-color .15s;
+    }
+    #bz-calc-root input:focus, #bz-calc-root select:focus {
+      outline: none; border-color: var(--bz-primary);
+    }
+    #bz-calc-root .bz-toggle {
+      display: flex; gap: 0; border: 1px solid var(--bz-border);
+      border-radius: var(--bz-radius-sm); overflow: hidden; width: fit-content;
+    }
+    #bz-calc-root .bz-toggle button {
+      font: inherit; font-size: 14px;
+      padding: 8px 16px; border: 0; background: var(--bz-bg);
+      cursor: pointer; color: var(--bz-fg);
+    }
+    #bz-calc-root .bz-toggle button.active {
+      background: var(--bz-primary); color: white;
+    }
+    #bz-calc-root .bz-btn {
+      font: inherit; font-size: 15px; font-weight: 500;
+      padding: 12px 24px; border: 0;
+      border-radius: var(--bz-radius-sm); cursor: pointer;
+      transition: background .15s;
+    }
+    #bz-calc-root .bz-btn-primary { background: var(--bz-primary); color: white; }
+    #bz-calc-root .bz-btn-primary:hover { background: var(--bz-primary-hover); }
+    #bz-calc-root .bz-btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
+    #bz-calc-root .bz-btn-ghost { background: transparent; color: var(--bz-fg); border: 1px solid var(--bz-border); }
+    #bz-calc-root .bz-btn-ghost:hover { background: var(--bz-bg-soft); }
+    #bz-calc-root .bz-actions { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+    #bz-calc-root .bz-alert {
+      padding: 14px 16px; border-radius: var(--bz-radius-sm);
+      background: var(--bz-warn-bg); color: var(--bz-warn);
+      font-size: 14px; margin: 12px 0;
+    }
+    #bz-calc-root .bz-error { color: #b91c1c; font-size: 13px; margin-top: 4px; }
+
+    /* Таблица результата */
+    #bz-calc-root .bz-results { display: grid; gap: 16px; grid-template-columns: 1fr 1fr 1fr; }
+    @media (max-width: 900px) { #bz-calc-root .bz-results { grid-template-columns: 1fr; } }
+    #bz-calc-root .bz-package {
+      background: var(--bz-bg); border: 1px solid var(--bz-border);
+      border-radius: var(--bz-radius); padding: 20px; display: flex; flex-direction: column;
+    }
+    #bz-calc-root .bz-package.bz-recommended { border-color: var(--bz-primary); border-width: 2px; }
+    #bz-calc-root .bz-pkg-tag {
+      font-size: 11px; font-weight: 600; color: var(--bz-primary);
+      text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px;
+    }
+    #bz-calc-root .bz-pkg-name { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+    #bz-calc-root .bz-pkg-desc { font-size: 13px; color: var(--bz-fg-muted); margin-bottom: 16px; }
+    #bz-calc-root .bz-pkg-total {
+      font-size: 26px; font-weight: 700; margin: 8px 0 16px;
+    }
+    #bz-calc-root .bz-pkg-items {
+      list-style: none; padding: 0; margin: 0; flex: 1;
+      font-size: 13px; color: var(--bz-fg);
+    }
+    #bz-calc-root .bz-pkg-items li {
+      display: flex; justify-content: space-between; gap: 8px;
+      padding: 6px 0; border-bottom: 1px solid var(--bz-bg-soft);
+    }
+    #bz-calc-root .bz-pkg-items li.bz-pkg-section {
+      font-weight: 600; color: var(--bz-fg-muted); border-bottom: 0;
+      padding-top: 12px; padding-bottom: 4px; font-size: 12px;
+      text-transform: uppercase; letter-spacing: .03em;
+    }
+    #bz-calc-root .bz-pkg-items .bz-item-price { color: var(--bz-fg-muted); white-space: nowrap; }
+    #bz-calc-root .bz-pkg-download { margin-top: 16px; }
+
+    /* Модалка формы */
+    #bz-calc-root .bz-modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,.5);
+      display: none; align-items: center; justify-content: center;
+      z-index: 9999; padding: 20px;
+    }
+    #bz-calc-root .bz-modal.show { display: flex; }
+    #bz-calc-root .bz-modal-content {
+      background: var(--bz-bg); padding: 28px; border-radius: var(--bz-radius);
+      max-width: 420px; width: 100%;
+    }
+    #bz-calc-root .bz-modal-close {
+      float: right; background: 0; border: 0; font-size: 22px; cursor: pointer; color: var(--bz-fg-muted);
+      padding: 0; line-height: 1;
+    }
+
+    /* Catalog status */
+    #bz-calc-root .bz-catalog-info {
+      font-size: 11px; color: var(--bz-fg-muted); margin-top: 24px; text-align: center;
+    }
+  </style>
+
+  <!-- Шаг 1: опрос -->
+  <div id="bz-step-survey">
+    <div class="bz-step-progress"><div class="active"></div><div></div></div>
+    <h2>Расчёт сметы под ключ</h2>
+    <p class="bz-subtitle">Расскажите про объект — мы предложим 3 варианта комплектации с актуальными ценами.</p>
+
+    <div class="bz-card">
+      <h3>Объект</h3>
+      <div class="bz-grid">
+        <label class="bz-field">
+          Площадь, м²
+          <input type="number" id="bz-area" min="50" max="800" value="200" step="10">
+          <span class="bz-hint">От 50 до 800 м².</span>
+        </label>
+        <label class="bz-field">
+          Обслуживаемые помещения
+          <input type="number" id="bz-rooms" min="2" max="20" value="4">
+          <span class="bz-hint">Спальни, кухни, гостиные, кабинеты.</span>
+        </label>
+        <label class="bz-field">
+          Технические помещения
+          <input type="number" id="bz-techRooms" min="0" max="20" value="2">
+          <span class="bz-hint">Санузлы, гардеробные, кладовые, постирочные.</span>
+        </label>
+        <label class="bz-field">
+          Проживающих человек
+          <input type="number" id="bz-people" min="1" max="20" value="4">
+        </label>
+      </div>
+    </div>
+
+    <div class="bz-card">
+      <h3>Условия</h3>
+      <div class="bz-grid">
+        <div class="bz-field">
+          Локация
+          <div class="bz-toggle" data-toggle="location">
+            <button type="button" data-value="moscow" class="active">Москва</button>
+            <button type="button" data-value="region">МО</button>
+          </div>
+        </div>
+        <div class="bz-field">
+          Тип объекта
+          <div class="bz-toggle" data-toggle="propertyType">
+            <button type="button" data-value="house" class="active">Дом</button>
+            <button type="button" data-value="apartment">Квартира</button>
+          </div>
+        </div>
+        <div class="bz-field" id="bz-heating-field">
+          Отопление в доме
+          <div class="bz-toggle" data-toggle="heating">
+            <button type="button" data-value="gas" class="active">Газ</button>
+            <button type="button" data-value="electric">Электричество</button>
+          </div>
+        </div>
+        <div class="bz-field">
+          Бассейн
+          <div class="bz-toggle" data-toggle="pool">
+            <button type="button" data-value="no" class="active">Нет</button>
+            <button type="button" data-value="yes">Есть</button>
+          </div>
+        </div>
+        <div class="bz-field">
+          Домашние животные
+          <div class="bz-toggle" data-toggle="pets">
+            <button type="button" data-value="no" class="active">Нет</button>
+            <button type="button" data-value="yes">Есть</button>
+          </div>
+        </div>
+        <div class="bz-field">
+          Аллергии у проживающих
+          <div class="bz-toggle" data-toggle="allergy">
+            <button type="button" data-value="no" class="active">Нет</button>
+            <button type="button" data-value="yes">Есть</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="bz-survey-warning"></div>
+
+    <div class="bz-actions">
+      <button class="bz-btn bz-btn-primary" id="bz-calc-btn">Рассчитать смету</button>
+    </div>
+  </div>
+
+  <!-- Шаг 2: результат -->
+  <div id="bz-step-result" style="display:none;">
+    <div class="bz-step-progress"><div class="active"></div><div class="active"></div></div>
+    <button class="bz-btn bz-btn-ghost" id="bz-back-btn">← Изменить параметры</button>
+    <h2 style="margin-top: 20px;">Ваши варианты</h2>
+    <p class="bz-subtitle" id="bz-result-summary"></p>
+    <div id="bz-result-warning"></div>
+    <div class="bz-results" id="bz-results-grid"></div>
+    <div class="bz-catalog-info" id="bz-catalog-info"></div>
+  </div>
+
+  <!-- Модалка формы лида -->
+  <div class="bz-modal" id="bz-lead-modal">
+    <div class="bz-modal-content">
+      <button class="bz-modal-close" type="button" onclick="document.getElementById('bz-lead-modal').classList.remove('show')">×</button>
+      <h3>Получить смету</h3>
+      <p class="bz-subtitle">Оставьте контакты — мы пришлём смету и свяжемся с вами.</p>
+      <div class="bz-grid" style="grid-template-columns:1fr;">
+        <label class="bz-field">
+          Ваше имя
+          <input type="text" id="bz-lead-name" required>
+        </label>
+        <label class="bz-field">
+          Телефон
+          <input type="tel" id="bz-lead-phone" placeholder="+7 (___) ___-__-__" required>
+        </label>
+      </div>
+      <div id="bz-lead-error" class="bz-error"></div>
+      <div class="bz-actions">
+        <button class="bz-btn bz-btn-primary" id="bz-lead-submit">Получить смету</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- jsPDF для генерации PDF (с поддержкой Unicode-шрифта) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+(function() {
+'use strict';
+
+// ============================================================
+//                   КОНФИГУРАЦИЯ
+// ============================================================
+
+// >>>> 1. URL вашего catalog.json (на GitHub Pages или своём хостинге)
+// Сейчас стоит заглушка с заминусованным URL —
+// после деплоя бэка замените на свой адрес вида:
+// https://YOUR_GITHUB_USER.github.io/breezart-calc/catalog.json
+const CATALOG_URL = "/catalog.json"; // <— ИЗМЕНИТЬ
+
+// >>>> 2. Параметры отправки лидов в Tilda
+// Вариант А: id вашей формы Tilda (для встраивания через её скрипт)
+// Вариант Б: прямой URL вебхука (формы Tilda Pro / своя интеграция)
+const TILDA_WEBHOOK_URL = ""; // <— ИЗМЕНИТЬ (например, https://forms.tildacdn.com/procces/)
+
+// >>>> 3. Компания (для шапки PDF)
+const COMPANY = {
+  name: "Ваша компания",
+  phone: "+7 (___) ___-__-__",
+  email: "info@yourcompany.ru",
+  site: "yourcompany.ru",
+};
+
+// ============================================================
+//        КОММЕРЧЕСКИЕ ПРАВИЛА (можно править)
+// ============================================================
+
+const RULES = {
+  // Лимиты опроса
+  AREA_MIN: 50, AREA_MAX: 800,
+  ROOMS_MIN: 2, ROOMS_MAX: 20,
+  TECH_MAX: 20,
+  PEOPLE_MAX: 20,
+
+  // Расход приточки
+  AIR_PER_ROOM: 100,           // м³/ч на одно обслуживаемое помещение
+  AIR_PER_PERSON: 60,          // м³/ч на проживающего
+
+  // Запас по производительности
+  RESERVE: { basic: 1.0, comfort: 1.3, lux: 1.5 },
+
+  // Соединительный комплект (для домов в Люкс)
+  CONNECT_KIT_HOUSE_LUX: 150000,
+
+  // Вентилятор технических помещений
+  FAN_STD: 14000,              // стандарт на 2 техпом.
+  FAN_LUX_HOUSE: 75000,        // люкс для дома на 2 техпом.
+  FAN_PER_TECH_PAIR: 2,        // делитель кол-ва тех. помещений
+
+  // Воздуховоды вентиляции (4. база: 40К на 300 м³/ч)
+  DUCT_BASE_PRICE: 40000,
+  DUCT_BASE_FLOW: 300,
+  DUCT_PCT: { basic: 0.13, comfort: 0.13, lux: 0.20 },
+
+  // Расходники и крепёж (на 100 м²)
+  HARDWARE_PER_100M2: { basic: 90000, comfort: 90000, lux: 100000 },
+
+  // Транспорт (на 100 м²) — ×2 если МО
+  TRANSPORT_PER_100M2: 60000,
+  TRANSPORT_REGION_MULT: 2,
+
+  // Утеплитель (на 100 м²)
+  INSULATION_PER_100M2: { basic: 180000, comfort: 200000, lux: 400000 },
+
+  // Кондиционеры — категория
+  AC_THRESHOLD_AREA: 140,
+  AC_THRESHOLD_ROOMS: 6,
+  AC_KW_PER_M2: 0.07,
+
+  // Бытовая категория (Базово/Комфорт)
+  AC_RESI_INDOOR_PER_ROOM: 50000,
+  AC_RESI_OUTDOOR_SMALL: 160000,   // ≤100 м²
+  AC_RESI_OUTDOOR_LARGE: 230000,   // 100<S≤140 м²
+  AC_RESI_AREA_THRESHOLD: 100,
+
+  // Бытовая категория ЛЮКС — прямая таблица (комнат → итого)
+  AC_RESI_LUX_TABLE: {
+    2: 309900,
+    3: 394900,
+    4: 619900,
+    5: 793900,
+  },
+
+  // Промышленная категория — таблица (кВт, цена Базово/Комфорт)
+  // Цена Люкс = Базово × 1.3
+  AC_INDUSTRIAL_TABLE: [
+    [25.2, 1842000], [28, 1941000], [33.5, 2132000], [40, 2441000],
+    [45, 2505000], [50, 2895000], [56, 3056000], [61.5, 3316000],
+    [67, 3584000], [73, 4209000], [78.5, 4249000], [85, 4605000],
+    [90, 4640000], [95, 4879000], [101, 5098000], [106, 5308000],
+    [112, 5465000], [117, 5533000],
+  ],
+  AC_INDUSTRIAL_LUX_MULT: 1.3,
+
+  // Пульт кондиционера
+  AC_REMOTE: {
+    basic:   { residential: 15000, industrial: 30000 },
+    comfort: { residential: 15000, industrial: 30000 },
+    lux:     { residential: 45000, industrial: 45000 },
+  },
+
+  // На каждую обслуживаемую комнату (кондиционер)
+  PER_ROOM_AC: {
+    duct_steel:       { basic: 80000, comfort: 80000, lux: 100000 }, // воздуховоды
+    duct_flex:        { basic: 5000,  comfort: 9000,  lux: 15000 },  // гибкие в/в
+    plenum:           { basic: 10000, comfort: 10000, lux: 10000 },  // пленум
+    freon_pipe:       { basic: 45000, comfort: 45000, lux: 45000 },
+    cable:            { basic: 8000,  comfort: 8000,  lux: 8000 },
+    drainage:         { basic: 10000, comfort: 10000, lux: 10000 },
+    dry_siphon:       { basic: 2000,  comfort: 2000,  lux: 3000 },
+    ac_diffuser:      { basic: 36000, comfort: 60000, lux: 90000 },  // подача из конд.
+  },
+
+  // На каждое техническое помещение
+  PER_TECH_ROOM: {
+    exhaust_decor: { basic: 4000, comfort: 8000, lux: 16000 },
+  },
+
+  // Увлажнение
+  HUMIDIFIER: {
+    SMALL_PRICE: 850000,                // ≤6 комнат
+    BIG_PRICE: 1560000,                 // 7-12 комнат
+    SMALL_MAX_ROOMS: 6,
+    BIG_MAX_ROOMS: 12,
+    PER_ROOM: { basic: 100000, comfort: 180000, lux: 245000 },
+  },
+
+  // Озонация (фикс. цена в ТОПе, если есть животные)
+  OZONATION_LUX_HOUSE: 300000,
+
+  // ПНР
+  COMMISSIONING_PCT: 0.10,
+};
+
+// ============================================================
+//                      СОСТОЯНИЕ
+// ============================================================
+
+const STATE = {
+  // Входные данные
+  area: 200,
+  rooms: 4,
+  techRooms: 2,
+  people: 4,
+  location: "moscow",
+  propertyType: "house",
+  heating: "gas",
+  pool: "no",
+  pets: "no",
+  allergy: "no",
+
+  // Каталог Breezart
+  catalog: null,
+  catalogError: null,
+  catalogVersion: null,
+
+  // Результат расчёта
+  packages: null,
+  context: null,
+};
+
+// ============================================================
+//                ЗАГРУЗКА КАТАЛОГА BREEZART
+// ============================================================
+
+async function loadCatalog() {
+  try {
+    const r = await fetch(CATALOG_URL, { cache: "no-cache" });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const data = await r.json();
+    if (!data.series || typeof data.series !== "object") {
+      throw new Error("invalid catalog format");
+    }
+    STATE.catalog = data;
+    STATE.catalogVersion = data.version || "n/a";
+    document.getElementById("bz-catalog-info").textContent =
+      "Цены Breezart актуальны на " + (data.version ? new Date(data.version).toLocaleDateString("ru-RU") : "—") +
+      ". Источник: breezart.ru/tech/price_breezart.pdf";
+  } catch (e) {
+    STATE.catalogError = e.message || String(e);
+    console.error("[BZ] не удалось загрузить каталог:", e);
+    document.getElementById("bz-catalog-info").innerHTML =
+      "<span style='color:#b91c1c'>Не удалось загрузить актуальный каталог Breezart. " +
+      "Используется встроенный список.</span>";
+    STATE.catalog = FALLBACK_CATALOG;
+  }
+}
+
+// Аварийный встроенный каталог — на случай если bg-парсер недоступен.
+// Содержит только базовые модели Breezart (актуальные на момент сборки).
+// Структура совпадает с тем, что генерирует backend/parser.py.
+const FALLBACK_CATALOG = {
+  version: "fallback-2026-04",
+  source: "embedded",
+  series: {
+    lux: [
+      { name: "300 Lux", nominal: 300, heaters: [[3.0, 224200]] },
+      { name: "550 Lux", nominal: 550, heaters: [[1.8, 260400], [3.6, 260400], [5.4, 260400]] },
+      { name: "600 Lux", nominal: 600, heaters: [[3.6, 276600], [5.4, 276600], [7.5, 276600]] },
+      { name: "1000 Lux", nominal: 1000, heaters: [[3.6, 282600], [7.2, 282600], [14.4, 282600]] },
+      { name: "2000 Lux", nominal: 2000, heaters: [[12.5, 414200], [16.8, 428500], [21.0, 434000], [25.0, 442900]] },
+      { name: "2700 Lux", nominal: 2700, heaters: [[15.0, 603000], [22.5, 621700], [30.0, 655100], [37.5, 677100], [45.0, 699000]] },
+      { name: "3700 Lux", nominal: 3700, heaters: [[15.0, 628800], [22.5, 647500], [30.0, 681000], [37.5, 702900], [45.0, 724800], [52.5, 779700]] },
+      { name: "4500 Lux", nominal: 4500, heaters: [[22.5, 784100], [30.0, 800100], [45.0, 816100], [60.0, 830900]] },
+      { name: "6000 Lux", nominal: 6000, heaters: [[45.0, 952400], [60.0, 1069600], [75.0, 1134500]] },
+    ],
+    lux_f: [
+      { name: "1000 Lux F", nominal: 1000, heaters: [[10.0, 338300], [13.8, 347600], [18.8, 356100]] },
+      { name: "2000 Lux F", nominal: 2000, heaters: [[12.5, 589000], [16.8, 597800], [21.0, 618000], [25.0, 629500]] },
+      { name: "2700 Lux F", nominal: 2700, heaters: [[15.0, 790000], [22.5, 808700], [30.0, 842200], [37.5, 864100]] },
+      { name: "3700 Lux F", nominal: 3700, heaters: [[15.0, 823200], [22.5, 841900], [30.0, 875400], [37.5, 897300], [45.0, 919200], [52.5, 974100]] },
+      { name: "4500 Lux F", nominal: 4500, heaters: [[22.5, 990800], [30.0, 1006800], [45.0, 1022800], [60.0, 1037600]] },
+      { name: "6000 Lux F", nominal: 6000, heaters: [[45.0, 1159100], [60.0, 1276300], [75.0, 1341200]] },
+    ],
+    aqua: [
+      { name: "550 Aqua", nominal: 550, price: 323300 },
+      { name: "600 Aqua", nominal: 600, price: 327900 },
+      { name: "1000 Aqua", nominal: 1000, price: 406600 },
+      { name: "2000 Aqua", nominal: 2000, price: 539700 },
+      { name: "2700 Aqua", nominal: 2700, price: 796400 },
+      { name: "3700 Aqua", nominal: 3700, price: 822200 },
+      { name: "4500 Aqua", nominal: 4500, price: 952900 },
+      { name: "6000 Aqua", nominal: 6000, price: 1009800 },
+    ],
+    aqua_f: [
+      { name: "1000 Aqua F", nominal: 1000, price: 508600 },
+      { name: "2000 Aqua F", nominal: 2000, price: 780900 },
+      { name: "2700 Aqua F", nominal: 2700, price: 991100 },
+      { name: "3700 Aqua F", nominal: 3700, price: 1016700 },
+      { name: "4500 Aqua F", nominal: 4500, price: 1159400 },
+      { name: "6000 Aqua F", nominal: 6000, price: 1216200 },
+    ],
+  },
+  e11_addon: { "550": 71150, "1000": 85550, "2000": 95150 },
+};
+
+// ============================================================
+//          ЛОГИКА ПОДБОРА ПРИТОЧКИ BREEZART
+// ============================================================
+
+/**
+ * Подбирает модель приточки в конкретной серии.
+ * Возвращает { name, nominal, price, heater } или null.
+ */
+function pickFromSeries(series, requiredFlow, requiredKw) {
+  if (!series || !series.length) return null;
+
+  // Кандидаты по расходу (с небольшим запасом 5%)
+  const candidates = series.filter(m => m.nominal >= requiredFlow * 0.95);
+  if (!candidates.length) return null;
+
+  // Берём ближайший по типоразмеру
+  candidates.sort((a, b) => a.nominal - b.nominal);
+  const best = candidates[0];
+
+  // Если у модели есть массив heaters — подбираем по мощности
+  if (Array.isArray(best.heaters) && best.heaters.length) {
+    const suitable = best.heaters.filter(h => h[0] >= requiredKw);
+    let heater, price;
+    if (suitable.length) {
+      heater = suitable.sort((a, b) => a[0] - b[0])[0];
+    } else {
+      heater = best.heaters.slice().sort((a, b) => b[0] - a[0])[0]; // самый мощный
+    }
+    return {
+      name: best.name, nominal: best.nominal,
+      heater: heater[0], price: heater[1],
+      underpowered: heater[0] < requiredKw,
+    };
+  }
+
+  // Aqua-модели — цена фиксированная
+  return {
+    name: best.name, nominal: best.nominal,
+    heater: null, price: best.price,
+  };
+}
+
+/**
+ * Для аллергии — доплата за секцию E11 по ближайшему большему типоразмеру.
+ */
+function e11Addon(nominal) {
+  const sizes = Object.keys(STATE.catalog.e11_addon || {}).map(Number).sort((a, b) => a - b);
+  if (!sizes.length) return 0;
+  const found = sizes.find(s => s >= nominal);
+  const key = found || sizes[sizes.length - 1];
+  return STATE.catalog.e11_addon[String(key)] || 0;
+}
+
+/**
+ * Главный подбор приточки под комплектацию.
+ */
+function pickIntakeUnit(pkg, requiredFlow, requiredKw) {
+  // Выбор серии по правилам с листа «Приточка расчёт»
+  let seriesKeys;
+  const isCooler = (pkg === "lux"); // охладитель только в Люкс
+  const isAqua = (STATE.propertyType === "house" && STATE.heating === "gas");
+
+  if (isAqua) {
+    seriesKeys = isCooler ? ["aqua_f"] : ["aqua"];
+  } else {
+    // Электр. нагреватель: квартира всегда, дом+электричество тоже
+    seriesKeys = isCooler ? ["lux_f"] : ["lux"];
+  }
+
+  let pick = null;
+  for (const k of seriesKeys) {
+    pick = pickFromSeries(STATE.catalog.series[k], requiredFlow, requiredKw);
+    if (pick) break;
+  }
+  if (!pick) {
+    // Фолбэк: пробуем любую серию с расходом
+    const allKeys = ["lux", "lux_f", "aqua", "aqua_f"];
+    for (const k of allKeys) {
+      pick = pickFromSeries(STATE.catalog.series[k], requiredFlow, requiredKw);
+      if (pick) break;
+    }
+  }
+  return pick;
+}
+
+// ============================================================
+//                  РАСЧЁТ ОДНОЙ КОМПЛЕКТАЦИИ
+// ============================================================
+
+function calcPackage(pkg) {
+  const items = [];   // [{section, name, price, comment}]
+  const ctx = STATE.context;
+
+  // -------- ВЕНТИЛЯЦИЯ --------
+  // 1. Приточка
+  const flow = ctx.requiredFlow * RULES.RESERVE[pkg];
+  // Требуемая мощность нагрева (упрощённо): для МО, T_внеш=-23, T_вых=22 → ΔT≈45
+  // Q_kW = m³/ч × 1.2 / 3600 × 1.005 × 45 ≈ flow × 0.015
+  const requiredKw = flow * 0.015;
+
+  const pick = pickIntakeUnit(pkg, flow, requiredKw);
+
+  if (pick) {
+    let price = pick.price;
+    let comment = `Расход ${Math.round(flow)} м³/ч`;
+    if (pick.heater) comment += `, нагрев ${pick.heater} кВт`;
+    if (pick.underpowered) comment += " (нагреватель ограничен)";
+
+    items.push({
+      section: "Вентиляция",
+      name: `Приточная установка Breezart ${pick.name}`,
+      price, comment,
+    });
+
+    // Аллергии — секция E11
+    if (STATE.allergy === "yes") {
+      const e11 = e11Addon(pick.nominal);
+      if (e11) {
+        items.push({
+          section: "Вентиляция",
+          name: "Секция фильтра E11 (HEPA)",
+          price: e11,
+          comment: "Фильтр тонкой очистки для аллергиков",
+        });
+      }
+    }
+  }
+
+  // 2. Соединительный комплект
+  if (pkg === "lux" && STATE.propertyType === "house") {
+    items.push({
+      section: "Вентиляция",
+      name: "Соединительный комплект",
+      price: RULES.CONNECT_KIT_HOUSE_LUX,
+    });
+  }
+
+  // 3. Вентилятор техпомещений
+  if (STATE.techRooms > 0) {
+    const pairs = Math.ceil(STATE.techRooms / RULES.FAN_PER_TECH_PAIR);
+    let price;
+    if (pkg === "lux" && STATE.propertyType === "house") {
+      price = RULES.FAN_LUX_HOUSE * pairs;
+    } else {
+      price = RULES.FAN_STD * pairs;
+    }
+    items.push({
+      section: "Вентиляция",
+      name: pkg === "lux" && STATE.propertyType === "house" ? "Вентилятор Lux" : "Вентилятор стандарт",
+      price,
+      comment: `На ${STATE.techRooms} тех. помещ. (${pairs} ${pairs === 1 ? "шт" : "шт"}.)`,
+    });
+  }
+
+  // 4. Воздуховоды вентиляции
+  const ductBase = RULES.DUCT_BASE_PRICE / RULES.DUCT_BASE_FLOW; // ₽ за м³/ч на 100% от мощности
+  const ductPrice = Math.round(flow * RULES.DUCT_PCT[pkg] * ductBase / 0.13); // нормируем к 13% = базовая ставка 40К/300м³
+  // Проверка: при flow=300, pct=0.13 → 300 × 0.13 × (40000/300) / 0.13 = 40000 ✓
+  items.push({
+    section: "Вентиляция",
+    name: "Воздуховоды вентиляции",
+    price: ductPrice,
+    comment: `${Math.round(RULES.DUCT_PCT[pkg] * 100)}% от расхода`,
+  });
+
+  // 5. Крепёж/расходники (линейно по площади)
+  const hardware = (STATE.area / 100) * RULES.HARDWARE_PER_100M2[pkg];
+  items.push({
+    section: "Вентиляция",
+    name: "Крепёжные и расходные материалы",
+    price: Math.round(hardware),
+    comment: `${(STATE.area / 100).toFixed(2)} × 100 м²`,
+  });
+
+  // 6. Транспорт
+  const tMult = STATE.location === "region" ? RULES.TRANSPORT_REGION_MULT : 1;
+  const transport = (STATE.area / 100) * RULES.TRANSPORT_PER_100M2 * tMult;
+  items.push({
+    section: "Вентиляция",
+    name: "Накладные и транспортные расходы",
+    price: Math.round(transport),
+    comment: STATE.location === "region" ? "МО — ×2" : "Москва",
+  });
+
+  // 7. Утеплитель
+  const insulation = (STATE.area / 100) * RULES.INSULATION_PER_100M2[pkg];
+  let insulationName;
+  if (pkg === "basic") insulationName = "Утеплитель: пенофол";
+  else if (pkg === "comfort") insulationName = "Утеплитель: каучук 50%";
+  else insulationName = "Утеплитель: каучук";
+  items.push({ section: "Вентиляция", name: insulationName, price: Math.round(insulation) });
+
+  // -------- КОНДИЦИОНИРОВАНИЕ --------
+  const isIndustrial = (STATE.area > RULES.AC_THRESHOLD_AREA || STATE.rooms >= RULES.AC_THRESHOLD_ROOMS);
+  const category = isIndustrial ? "industrial" : "residential";
+
+  // 8. Блоки кондиционеров
+  let acPrice = 0, acName = "";
+  if (isIndustrial) {
+    // Промышленная — по таблице (площадь × 0.07 → ближ. больший)
+    const needKw = STATE.area * RULES.AC_KW_PER_M2;
+    const row = RULES.AC_INDUSTRIAL_TABLE.find(r => r[0] >= needKw)
+              || RULES.AC_INDUSTRIAL_TABLE[RULES.AC_INDUSTRIAL_TABLE.length - 1];
+    acPrice = row[1] * (pkg === "lux" ? RULES.AC_INDUSTRIAL_LUX_MULT : 1);
+    acName = `Промышленный кондиционер ${row[0]} кВт`;
+  } else {
+    // Бытовая
+    if (pkg === "lux") {
+      // Прямой lookup
+      acPrice = RULES.AC_RESI_LUX_TABLE[STATE.rooms] || RULES.AC_RESI_LUX_TABLE[5];
+      acName = `Мульти-сплит Люкс (${STATE.rooms} комнат)`;
+    } else {
+      // Базово/Комфорт: внутр × комнат + внешний
+      const indoor = RULES.AC_RESI_INDOOR_PER_ROOM * STATE.rooms;
+      const outdoor = (STATE.area <= RULES.AC_RESI_AREA_THRESHOLD)
+        ? RULES.AC_RESI_OUTDOOR_SMALL : RULES.AC_RESI_OUTDOOR_LARGE;
+      acPrice = indoor + outdoor;
+      acName = `Мульти-сплит (${STATE.rooms} внутр. + 1 внешн.)`;
+    }
+  }
+  items.push({
+    section: "Кондиционирование",
+    name: acName,
+    price: Math.round(acPrice),
+    comment: isIndustrial ? "Промышленная категория" : "Бытовая категория",
+  });
+
+  // 9. Пульт
+  items.push({
+    section: "Кондиционирование",
+    name: "Пульт управления",
+    price: RULES.AC_REMOTE[pkg][category],
+  });
+
+  // 10–16. На каждую комнату
+  const perRoomItems = [
+    ["Воздуховоды оцинк. сталь", "duct_steel"],
+    ["Гибкие тепло-шумоизолир. в/в", "duct_flex"],
+    ["Пленум для канального блока", "plenum"],
+    ["Фреонопровод", "freon_pipe"],
+    ["Кабельная продукция", "cable"],
+    ["Дренажный трубопровод", "drainage"],
+    ["Сухой сифон", "dry_siphon"],
+  ];
+  for (const [label, key] of perRoomItems) {
+    items.push({
+      section: "Кондиционирование",
+      name: label,
+      price: RULES.PER_ROOM_AC[key][pkg] * STATE.rooms,
+      comment: `${STATE.rooms} комн × ${(RULES.PER_ROOM_AC[key][pkg] / 1000).toFixed(0)}К`,
+    });
+  }
+
+  // -------- ДЕКОР --------
+  // 17. Вытяжка из техпомещений
+  if (STATE.techRooms > 0) {
+    items.push({
+      section: "Декоративные элементы",
+      name: "Вытяжка из технических помещений",
+      price: RULES.PER_TECH_ROOM.exhaust_decor[pkg] * STATE.techRooms,
+      comment: `${STATE.techRooms} тех. помещ.`,
+    });
+  }
+
+  // 18. Подача воздуха из кондиционера
+  items.push({
+    section: "Декоративные элементы",
+    name: "Подача воздуха из кондиционера",
+    price: RULES.PER_ROOM_AC.ac_diffuser[pkg] * STATE.rooms,
+    comment: `${STATE.rooms} комн`,
+  });
+
+  // -------- УВЛАЖНЕНИЕ --------
+  const humid = calcHumidifier(pkg, STATE.rooms);
+  if (humid) {
+    items.push({
+      section: "Увлажнение",
+      name: humid.name,
+      price: humid.price,
+      comment: humid.comment,
+    });
+  }
+
+  // -------- ОЗОНАЦИЯ --------
+  if (STATE.pets === "yes" && pkg === "lux" && STATE.propertyType === "house") {
+    items.push({
+      section: "Дополнительно",
+      name: "Озонация (для домов с животными)",
+      price: RULES.OZONATION_LUX_HOUSE,
+    });
+  }
+
+  // -------- ПНР --------
+  const subtotal = items.reduce((s, i) => s + i.price, 0);
+  const commissioning = Math.round(subtotal * RULES.COMMISSIONING_PCT);
+  items.push({
+    section: "Пусконаладочные работы",
+    name: "ПНР",
+    price: commissioning,
+    comment: `${(RULES.COMMISSIONING_PCT * 100).toFixed(0)}% от стоимости`,
+  });
+
+  const total = subtotal + commissioning;
+  return { items, total, intakeUnit: pick };
+}
+
+/**
+ * Увлажнение: выбираем выгодную конфигурацию из двух типов установок.
+ */
+function calcHumidifier(pkg, rooms) {
+  const cfg = RULES.HUMIDIFIER;
+  if (rooms <= 0) return null;
+
+  // Перебор: сколько маленьких + сколько больших
+  // Маленькая обслуживает ≤6 комнат, большая ≤12 комнат.
+  // Берём комбинацию с минимальной ценой.
+  let best = null;
+  for (let big = 0; big <= 3; big++) {
+    for (let small = 0; small <= 5; small++) {
+      const cap = small * cfg.SMALL_MAX_ROOMS + big * cfg.BIG_MAX_ROOMS;
+      if (cap < rooms) continue;
+      if (small + big === 0) continue;
+      const cost = small * cfg.SMALL_PRICE + big * cfg.BIG_PRICE;
+      if (!best || cost < best.cost) {
+        best = { small, big, cost };
+      }
+    }
+  }
+  if (!best) return null;
+
+  const perRoom = cfg.PER_ROOM[pkg] * rooms;
+  const total = best.cost + perRoom;
+  const parts = [];
+  if (best.small) parts.push(`${best.small} × малая`);
+  if (best.big) parts.push(`${best.big} × большая`);
+  return {
+    name: "Система увлажнения воздуха",
+    price: total,
+    comment: parts.join(" + ") + `, ${rooms} комн`,
+  };
+}
+
+// ============================================================
+//                       UI: РЕНДЕР
+// ============================================================
+
+function setupToggles() {
+  document.querySelectorAll("[data-toggle]").forEach(group => {
+    const key = group.dataset.toggle;
+    group.querySelectorAll("button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        group.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        STATE[key] = btn.dataset.value;
+        if (key === "propertyType") updateHeatingVisibility();
+        validateSurvey();
+      });
+    });
+  });
+  updateHeatingVisibility();
+}
+
+function updateHeatingVisibility() {
+  const field = document.getElementById("bz-heating-field");
+  field.style.display = STATE.propertyType === "house" ? "" : "none";
+}
+
+function readSurvey() {
+  STATE.area = +document.getElementById("bz-area").value || 0;
+  STATE.rooms = +document.getElementById("bz-rooms").value || 0;
+  STATE.techRooms = +document.getElementById("bz-techRooms").value || 0;
+  STATE.people = +document.getElementById("bz-people").value || 0;
+}
+
+function validateSurvey() {
+  readSurvey();
+  const warnings = [];
+  const errors = [];
+
+  if (STATE.area < RULES.AREA_MIN) {
+    errors.push(`К сожалению, мы не работаем с объектами менее ${RULES.AREA_MIN} м². Расчёт невозможен.`);
+  } else if (STATE.area > RULES.AREA_MAX) {
+    warnings.push(`Объекты более ${RULES.AREA_MAX} м² требуют индивидуального расчёта. Оставьте заявку — мы свяжемся.`);
+  }
+  if (STATE.rooms < RULES.ROOMS_MIN) {
+    errors.push(`Минимум ${RULES.ROOMS_MIN} обслуживаемых помещения.`);
+  } else if (STATE.rooms > RULES.ROOMS_MAX) {
+    warnings.push(`При количестве помещений больше ${RULES.ROOMS_MAX} нужен индивидуальный расчёт.`);
+  }
+  if (STATE.techRooms > RULES.TECH_MAX) {
+    errors.push(`Слишком много технических помещений (максимум ${RULES.TECH_MAX}).`);
+  }
+  if (STATE.people > RULES.PEOPLE_MAX) {
+    errors.push(`Слишком много проживающих (максимум ${RULES.PEOPLE_MAX}).`);
+  }
+  if (STATE.pool === "yes") {
+    warnings.push("Помещения с бассейном считаются отдельно. В смете ниже бассейн НЕ учтён.");
+  }
+
+  const box = document.getElementById("bz-survey-warning");
+  box.innerHTML = "";
+  for (const w of warnings) {
+    const d = document.createElement("div");
+    d.className = "bz-alert"; d.textContent = w;
+    box.appendChild(d);
+  }
+  for (const e of errors) {
+    const d = document.createElement("div");
+    d.className = "bz-alert"; d.style.background = "#fee2e2"; d.style.color = "#b91c1c";
+    d.textContent = e;
+    box.appendChild(d);
+  }
+
+  document.getElementById("bz-calc-btn").disabled = errors.length > 0;
+  return errors.length === 0;
+}
+
+function fmtRub(n) {
+  return new Intl.NumberFormat("ru-RU").format(Math.round(n)) + " ₽";
+}
+
+function runCalc() {
+  if (!validateSurvey()) return;
+
+  // Расход
+  const flow = Math.max(STATE.rooms * RULES.AIR_PER_ROOM, STATE.people * RULES.AIR_PER_PERSON);
+  STATE.context = { requiredFlow: flow };
+
+  STATE.packages = {
+    basic:   calcPackage("basic"),
+    comfort: calcPackage("comfort"),
+    lux:     calcPackage("lux"),
+  };
+
+  renderResults();
+  document.getElementById("bz-step-survey").style.display = "none";
+  document.getElementById("bz-step-result").style.display = "";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function renderResults() {
+  const grid = document.getElementById("bz-results-grid");
+  grid.innerHTML = "";
+
+  const meta = {
+    basic:   { tag: "Базово",  desc: "Оптимальный набор для комфортного климата" },
+    comfort: { tag: "Комфорт", desc: "Запас по производительности и улучшенный утеплитель" },
+    lux:     { tag: "Люкс",    desc: "Премиум: фреоновое охлаждение, тихий вентилятор, фильтрация" },
+  };
+
+  for (const pkg of ["basic", "comfort", "lux"]) {
+    const data = STATE.packages[pkg];
+    const card = document.createElement("div");
+    card.className = "bz-package" + (pkg === "comfort" ? " bz-recommended" : "");
+
+    // Группируем по разделам
+    const sections = {};
+    for (const item of data.items) {
+      if (!sections[item.section]) sections[item.section] = [];
+      sections[item.section].push(item);
+    }
+
+    let itemsHtml = "";
+    for (const [sec, list] of Object.entries(sections)) {
+      itemsHtml += `<li class="bz-pkg-section">${sec}</li>`;
+      for (const i of list) {
+        itemsHtml += `<li><span>${i.name}${i.comment ? `<br><span style='color:var(--bz-fg-muted); font-size:11px'>${i.comment}</span>` : ""}</span><span class="bz-item-price">${fmtRub(i.price)}</span></li>`;
+      }
+    }
+
+    card.innerHTML = `
+      ${pkg === "comfort" ? '<div class="bz-pkg-tag">Рекомендуем</div>' : ""}
+      <div class="bz-pkg-name">${meta[pkg].tag}</div>
+      <div class="bz-pkg-desc">${meta[pkg].desc}</div>
+      <div class="bz-pkg-total">${fmtRub(data.total)}</div>
+      <ul class="bz-pkg-items">${itemsHtml}</ul>
+      <button class="bz-btn bz-btn-primary bz-pkg-download" data-pkg="${pkg}">Скачать смету</button>
+    `;
+    grid.appendChild(card);
+  }
+
+  // Контекст-резюме
+  const ctx = STATE.context;
+  const summary = `${STATE.area} м², ${STATE.rooms} комнат, ${STATE.people} чел, ${STATE.propertyType === "house" ? "дом" : "квартира"}, ${STATE.location === "moscow" ? "Москва" : "МО"}. Требуемый расход приточки: ${ctx.requiredFlow} м³/ч.`;
+  document.getElementById("bz-result-summary").textContent = summary;
+
+  // Привязываем кнопки скачивания
+  grid.querySelectorAll(".bz-pkg-download").forEach(btn => {
+    btn.addEventListener("click", () => {
+      openLeadModal(btn.dataset.pkg);
+    });
+  });
+}
+
+// ============================================================
+//          ФОРМА ЛИДА + ОТПРАВКА В TILDA
+// ============================================================
+
+let pendingPackage = null;
+
+function openLeadModal(pkg) {
+  pendingPackage = pkg;
+  document.getElementById("bz-lead-name").value = "";
+  document.getElementById("bz-lead-phone").value = "";
+  document.getElementById("bz-lead-error").textContent = "";
+  document.getElementById("bz-lead-modal").classList.add("show");
+}
+
+async function submitLead() {
+  const name = document.getElementById("bz-lead-name").value.trim();
+  const phone = document.getElementById("bz-lead-phone").value.trim();
+  const errBox = document.getElementById("bz-lead-error");
+  const submitBtn = document.getElementById("bz-lead-submit");
+  errBox.textContent = "";
+
+  if (!name) { errBox.textContent = "Укажите имя"; return; }
+  if (!phone || phone.replace(/\D/g, "").length < 10) {
+    errBox.textContent = "Укажите корректный телефон"; return;
+  }
+
+  const origText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Готовим смету…";
+
+  const pkgData = STATE.packages[pendingPackage];
+  const pkgLabel = { basic: "Базово", comfort: "Комфорт", lux: "Люкс" }[pendingPackage];
+
+  // Отправка в Tilda
+  const lead = {
+    Name: name,
+    Phone: phone,
+    Form: "Калькулятор сметы",
+    Package: pkgLabel,
+    Total: pkgData.total,
+    Area: STATE.area,
+    Rooms: STATE.rooms,
+    Property: STATE.propertyType === "house" ? "Дом" : "Квартира",
+    Location: STATE.location === "moscow" ? "Москва" : "МО",
+  };
+
+  try {
+    if (TILDA_WEBHOOK_URL) {
+      const fd = new FormData();
+      for (const [k, v] of Object.entries(lead)) fd.append(k, v);
+      await fetch(TILDA_WEBHOOK_URL, { method: "POST", body: fd, mode: "no-cors" });
+    } else {
+      console.warn("[BZ] TILDA_WEBHOOK_URL не настроен, лид только в console:", lead);
+    }
+  } catch (e) {
+    console.error("[BZ] ошибка отправки лида:", e);
+    // Не блокируем выдачу PDF — лучше отдать клиенту смету, чем потерять обоих.
+  }
+
+  document.getElementById("bz-lead-modal").classList.remove("show");
+
+  // Генерируем PDF (асинхронно — подгружает шрифт)
+  try {
+    await generatePDF(pendingPackage, name);
+  } catch (e) {
+    console.error("[BZ] ошибка генерации PDF:", e);
+    alert("Не удалось сформировать PDF. Попробуйте ещё раз или свяжитесь с нами — мы вышлем смету вручную.");
+  }
+
+  submitBtn.disabled = false;
+  submitBtn.textContent = origText;
+}
+
+// ============================================================
+//                    ГЕНЕРАЦИЯ PDF
+// ============================================================
+
+// URL шрифтов PT Sans (SIL OFL 1.1, поддержка кириллицы).
+// Пробуем несколько CDN по очереди — на случай если один недоступен.
+// Рекомендация: можно захостить эти TTF на своём GitHub Pages
+// (рядом с catalog.json) и указать вместо CDN — будет надёжнее.
+const FONT_URLS_REGULAR = [
+  "https://cdn.jsdelivr.net/fontsource/fonts/pt-sans@latest/cyrillic-400-normal.ttf",
+  "https://unpkg.com/@fontsource/pt-sans/files/pt-sans-cyrillic-400-normal.ttf",
+];
+const FONT_URLS_BOLD = [
+  "https://cdn.jsdelivr.net/fontsource/fonts/pt-sans@latest/cyrillic-700-normal.ttf",
+  "https://unpkg.com/@fontsource/pt-sans/files/pt-sans-cyrillic-700-normal.ttf",
+];
+
+let _fontCache = null;
+let _fontLoadingPromise = null;
+
+async function loadFontBase64(urls) {
+  let lastError = null;
+  for (const url of urls) {
+    try {
+      const r = await fetch(url);
+      if (!r.ok) { lastError = new Error("HTTP " + r.status); continue; }
+      const buf = await r.arrayBuffer();
+      if (buf.byteLength < 1000) { lastError = new Error("файл слишком мал"); continue; }
+      const bytes = new Uint8Array(buf);
+      let bin = "";
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+      }
+      return btoa(bin);
+    } catch (e) {
+      lastError = e;
+    }
+  }
+  throw lastError || new Error("все источники шрифта недоступны");
+}
+
+async function ensureFontLoaded() {
+  if (_fontCache) return _fontCache;
+  if (_fontLoadingPromise) return _fontLoadingPromise;
+  _fontLoadingPromise = (async () => {
+    try {
+      const [regB64, boldB64] = await Promise.all([
+        loadFontBase64(FONT_URLS_REGULAR),
+        loadFontBase64(FONT_URLS_BOLD),
+      ]);
+      _fontCache = { regular: regB64, bold: boldB64, ok: true };
+    } catch (e) {
+      console.warn("[BZ] не удалось загрузить кириллический шрифт, PDF будет на латинице:", e);
+      _fontCache = { ok: false };
+    }
+    return _fontCache;
+  })();
+  return _fontLoadingPromise;
+}
+
+async function generatePDF(pkg, clientName) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+
+  // Грузим шрифт (один раз за сессию)
+  const font = await ensureFontLoaded();
+  if (font.ok) {
+    doc.addFileToVFS("PTSans-Regular.ttf", font.regular);
+    doc.addFont("PTSans-Regular.ttf", "PTSans", "normal");
+    doc.addFileToVFS("PTSans-Bold.ttf", font.bold);
+    doc.addFont("PTSans-Bold.ttf", "PTSans", "bold");
+    doc.setFont("PTSans", "normal");
+  }
+  const FONT = font.ok ? "PTSans" : "helvetica";
+
+  const pkgLabel = { basic: "Базово", comfort: "Комфорт", lux: "Люкс" }[pkg];
+  const data = STATE.packages[pkg];
+
+  // ---- Шапка ----
+  let y = 15;
+  doc.setFont(FONT, "bold");
+  doc.setFontSize(16);
+  doc.text(`Коммерческое предложение — ${pkgLabel}`, 15, y);
+  y += 8;
+  doc.setFont(FONT, "normal");
+  doc.setFontSize(10);
+  doc.text(`${COMPANY.name}`, 15, y); y += 4;
+  doc.text(`${COMPANY.phone}   ${COMPANY.email}   ${COMPANY.site}`, 15, y); y += 6;
+  doc.text(`Клиент: ${clientName}    Дата: ${new Date().toLocaleDateString("ru-RU")}`, 15, y);
+  y += 8;
+
+  // ---- Параметры объекта ----
+  doc.setFont(FONT, "bold");
+  doc.setFontSize(11);
+  doc.text("Параметры объекта", 15, y); y += 5;
+  doc.setFont(FONT, "normal");
+  doc.setFontSize(9);
+  const params = [
+    `Площадь: ${STATE.area} м²    Помещений: ${STATE.rooms}    Тех. помещений: ${STATE.techRooms}    Проживающих: ${STATE.people}`,
+    `Тип: ${STATE.propertyType === "house" ? "Дом" : "Квартира"}    Локация: ${STATE.location === "moscow" ? "Москва" : "МО"}    Отопление: ${STATE.propertyType === "house" ? (STATE.heating === "gas" ? "газ" : "электричество") : "—"}`,
+    `Бассейн: ${STATE.pool === "yes" ? "есть (считается отдельно)" : "нет"}    Животные: ${STATE.pets === "yes" ? "есть" : "нет"}    Аллергии: ${STATE.allergy === "yes" ? "есть" : "нет"}`,
+    `Расход приточки: ${STATE.context.requiredFlow} м³/ч`,
+  ];
+  for (const p of params) { doc.text(p, 15, y); y += 4.5; }
+  y += 4;
+
+  // ---- Таблица сметы ----
+  const rows = [];
+  let lastSection = "";
+  for (const item of data.items) {
+    if (item.section !== lastSection) {
+      rows.push([{
+        content: item.section,
+        colSpan: 2,
+        styles: { fontStyle: "bold", fillColor: [240, 240, 245], textColor: [60, 60, 70] },
+      }]);
+      lastSection = item.section;
+    }
+    rows.push([
+      item.name + (item.comment ? `\n${item.comment}` : ""),
+      fmtRub(item.price),
+    ]);
+  }
+  rows.push([
+    { content: "ИТОГО", styles: { fontStyle: "bold", fillColor: [37, 99, 235], textColor: [255, 255, 255] } },
+    { content: fmtRub(data.total), styles: { fontStyle: "bold", fillColor: [37, 99, 235], textColor: [255, 255, 255], halign: "right" } },
+  ]);
+
+  doc.autoTable({
+    startY: y,
+    head: [[
+      { content: "Наименование работ и оборудования", styles: { halign: "left" } },
+      { content: "Стоимость", styles: { halign: "right" } },
+    ]],
+    body: rows,
+    styles: { font: FONT, fontSize: 9, cellPadding: 2.5, lineColor: [220, 220, 230], lineWidth: 0.1 },
+    headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255], fontStyle: "bold" },
+    columnStyles: { 0: { cellWidth: 140 }, 1: { halign: "right", cellWidth: 40 } },
+    didParseCell: function(data) {
+      // Уменьшаем шрифт для пояснений (строки с переносом)
+      if (data.cell.text && data.cell.text.length === 2) {
+        // первая строка — название, вторая — пояснение
+      }
+    },
+  });
+
+  let finalY = doc.lastAutoTable.finalY + 8;
+
+  // ---- Подпись внизу ----
+  doc.setFontSize(8);
+  doc.setTextColor(110, 110, 110);
+  doc.text("Цены приточных установок Breezart актуальны на дату формирования предложения.", 15, finalY);
+  doc.text("КП носит ориентировочный характер. Точная стоимость определяется после выезда на объект.", 15, finalY + 4);
+
+  doc.save(`КП_${pkgLabel}_${new Date().toISOString().slice(0, 10)}.pdf`);
+}
+
+// ============================================================
+//                     ИНИЦИАЛИЗАЦИЯ
+// ============================================================
+
+document.addEventListener("DOMContentLoaded", async () => {
+  setupToggles();
+  ["bz-area", "bz-rooms", "bz-techRooms", "bz-people"].forEach(id => {
+    document.getElementById(id).addEventListener("input", validateSurvey);
+  });
+
+  document.getElementById("bz-calc-btn").addEventListener("click", runCalc);
+  document.getElementById("bz-back-btn").addEventListener("click", () => {
+    document.getElementById("bz-step-survey").style.display = "";
+    document.getElementById("bz-step-result").style.display = "none";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+  document.getElementById("bz-lead-submit").addEventListener("click", submitLead);
+
+  await loadCatalog();
+  validateSurvey();
+});
+
+})();
+</script>
