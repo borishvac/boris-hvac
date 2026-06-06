@@ -11,157 +11,178 @@
   Все коммерческие правила вынесены в константы в начале <script>.
 -->
 
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&subset=latin,cyrillic" rel="stylesheet">
 <div id="bz-calc-root">
   <style>
-    /* ====================== Стили ====================== */
+    /* ====================== Стили (boris-hvac.ru design system) ====================== */
     #bz-calc-root {
-      --bz-fg: #1a1a1a;
-      --bz-fg-muted: #6b7280;
+      --bz-fg: #000000;
+      --bz-fg-muted: rgba(0,0,0,.5);
       --bz-bg: #ffffff;
-      --bz-bg-soft: #f7f7f9;
-      --bz-bg-accent: #eef4ff;
-      --bz-border: #e5e7eb;
-      --bz-primary: #2563eb;
-      --bz-primary-hover: #1e40af;
+      --bz-bg-soft: #f5f5f5;
+      --bz-bg-accent: #fff5f2;
+      --bz-border: #e0e0e0;
+      --bz-primary: #ff8562;
+      --bz-primary-hover: #e66a45;
+      --bz-primary-light: #fff0ec;
       --bz-warn: #b45309;
       --bz-warn-bg: #fef3c7;
       --bz-success: #047857;
-      --bz-radius: 10px;
-      --bz-radius-sm: 6px;
-      --bz-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --bz-radius: 4px;
+      --bz-radius-sm: 2px;
+      --bz-font: 'Roboto', Arial, sans-serif;
       font-family: var(--bz-font);
       color: var(--bz-fg);
       max-width: 1200px;
       margin: 0 auto;
-      padding: 24px 16px;
-      line-height: 1.5;
+      padding: 60px 40px;
+      line-height: 1.55;
       box-sizing: border-box;
+      -webkit-font-smoothing: antialiased;
     }
     #bz-calc-root *, #bz-calc-root *::before, #bz-calc-root *::after { box-sizing: border-box; }
-    #bz-calc-root h2 { font-size: 22px; font-weight: 600; margin: 0 0 8px; }
-    #bz-calc-root h3 { font-size: 18px; font-weight: 600; margin: 0 0 16px; }
-    #bz-calc-root .bz-subtitle { color: var(--bz-fg-muted); margin: 0 0 24px; }
+    #bz-calc-root h2 { font-size: 42px; font-weight: 600; margin: 0 0 8px; line-height: 1.23; }
+    #bz-calc-root h3 { font-size: 20px; font-weight: 600; margin: 0 0 24px; line-height: 1.35; }
+    #bz-calc-root .bz-subtitle { color: var(--bz-fg-muted); margin: 0 0 40px; font-size: 18px; font-weight: 300; }
+    @media (max-width: 640px) {
+      #bz-calc-root { padding: 30px 20px; }
+      #bz-calc-root h2 { font-size: 30px; }
+      #bz-calc-root h3 { font-size: 18px; }
+      #bz-calc-root .bz-subtitle { font-size: 15px; margin-bottom: 30px; }
+    }
+
     #bz-calc-root .bz-card {
       background: var(--bz-bg);
-      border: 1px solid var(--bz-border);
-      border-radius: var(--bz-radius);
-      padding: 20px;
-      margin-bottom: 16px;
+      border-bottom: 1px solid var(--bz-border);
+      padding: 30px 0;
+      margin-bottom: 0;
     }
     #bz-calc-root .bz-step-progress {
-      display: flex; gap: 8px; margin-bottom: 24px;
+      display: flex; gap: 12px; margin-bottom: 40px;
     }
     #bz-calc-root .bz-step-progress div {
-      flex: 1; height: 4px; background: var(--bz-border); border-radius: 2px;
+      flex: 1; height: 2px; background: var(--bz-border); border-radius: 1px;
     }
     #bz-calc-root .bz-step-progress div.active { background: var(--bz-primary); }
     #bz-calc-root .bz-grid {
-      display: grid; gap: 16px;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      display: grid; gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     }
     #bz-calc-root label.bz-field {
-      display: flex; flex-direction: column; gap: 6px;
-      font-size: 14px; color: var(--bz-fg);
+      display: flex; flex-direction: column; gap: 8px;
+      font-size: 14px; font-weight: 300; color: var(--bz-fg);
     }
     #bz-calc-root label.bz-field .bz-hint {
       font-size: 12px; color: var(--bz-fg-muted); margin-top: 2px;
     }
     #bz-calc-root input[type=number], #bz-calc-root input[type=text], #bz-calc-root input[type=tel],
     #bz-calc-root select {
-      font: inherit; font-size: 15px;
-      padding: 10px 12px;
-      border: 1px solid var(--bz-border);
-      border-radius: var(--bz-radius-sm);
-      background: var(--bz-bg);
+      font-family: var(--bz-font); font-size: 16px; font-weight: 400;
+      padding: 16px 0;
+      border: none; border-bottom: 1px solid var(--bz-border);
+      border-radius: 0;
+      background: transparent;
       color: var(--bz-fg);
-      transition: border-color .15s;
+      transition: border-color .2s;
     }
     #bz-calc-root input:focus, #bz-calc-root select:focus {
-      outline: none; border-color: var(--bz-primary);
+      outline: none; border-bottom-color: var(--bz-primary);
     }
+    #bz-calc-root input::placeholder { color: var(--bz-fg-muted); font-weight: 300; }
     #bz-calc-root .bz-toggle {
-      display: flex; gap: 0; border: 1px solid var(--bz-border);
-      border-radius: var(--bz-radius-sm); overflow: hidden; width: fit-content;
+      display: flex; gap: 0;
+      border-radius: 0; overflow: hidden; width: fit-content;
+      border: none;
     }
     #bz-calc-root .bz-toggle button {
-      font: inherit; font-size: 14px;
-      padding: 8px 16px; border: 0; background: var(--bz-bg);
+      font-family: var(--bz-font); font-size: 14px; font-weight: 400;
+      padding: 10px 20px; border: 1px solid var(--bz-border); background: transparent;
       cursor: pointer; color: var(--bz-fg);
+      transition: all .15s;
     }
+    #bz-calc-root .bz-toggle button + button { border-left: none; }
     #bz-calc-root .bz-toggle button.active {
-      background: var(--bz-primary); color: white;
+      background: var(--bz-fg); color: #fff; border-color: var(--bz-fg);
+    }
+    #bz-calc-root .bz-toggle button:not(.active):hover {
+      background: var(--bz-bg-soft);
     }
     #bz-calc-root .bz-btn {
-      font: inherit; font-size: 15px; font-weight: 500;
-      padding: 12px 24px; border: 0;
-      border-radius: var(--bz-radius-sm); cursor: pointer;
-      transition: background .15s;
+      font-family: var(--bz-font); font-size: 16px; font-weight: 700;
+      padding: 0 60px; height: 60px; line-height: 60px;
+      border: 0; border-radius: 0; cursor: pointer;
+      transition: background .2s, opacity .2s;
+      display: inline-block; text-align: center; white-space: nowrap;
     }
-    #bz-calc-root .bz-btn-primary { background: var(--bz-primary); color: white; }
+    #bz-calc-root .bz-btn-primary { background: var(--bz-primary); color: #fff; }
     #bz-calc-root .bz-btn-primary:hover { background: var(--bz-primary-hover); }
-    #bz-calc-root .bz-btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
-    #bz-calc-root .bz-btn-ghost { background: transparent; color: var(--bz-fg); border: 1px solid var(--bz-border); }
-    #bz-calc-root .bz-btn-ghost:hover { background: var(--bz-bg-soft); }
-    #bz-calc-root .bz-actions { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+    #bz-calc-root .bz-btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+    #bz-calc-root .bz-btn-ghost { background: transparent; color: var(--bz-fg); border: none; font-weight: 400; font-size: 15px; padding: 0; height: auto; line-height: 1.4; text-decoration: underline; text-underline-offset: 3px; }
+    #bz-calc-root .bz-btn-ghost:hover { background: transparent; color: var(--bz-primary); }
+    #bz-calc-root .bz-actions { display: flex; gap: 20px; margin-top: 40px; flex-wrap: wrap; align-items: center; }
     #bz-calc-root .bz-alert {
-      padding: 14px 16px; border-radius: var(--bz-radius-sm);
-      background: var(--bz-warn-bg); color: var(--bz-warn);
-      font-size: 14px; margin: 12px 0;
+      padding: 16px 0; border-radius: 0;
+      border-bottom: 1px solid var(--bz-warn-bg);
+      background: transparent; color: var(--bz-warn);
+      font-size: 14px; font-weight: 300; margin: 12px 0;
     }
-    #bz-calc-root .bz-error { color: #b91c1c; font-size: 13px; margin-top: 4px; }
+    #bz-calc-root .bz-error { color: #b91c1c; font-size: 13px; margin-top: 4px; font-weight: 400; }
 
     /* Таблица результата */
-    #bz-calc-root .bz-results { display: grid; gap: 16px; grid-template-columns: 1fr 1fr 1fr; }
-    @media (max-width: 900px) { #bz-calc-root .bz-results { grid-template-columns: 1fr; } }
+    #bz-calc-root .bz-results { display: grid; gap: 24px; grid-template-columns: 1fr 1fr 1fr; }
+    @media (max-width: 980px) { #bz-calc-root .bz-results { grid-template-columns: 1fr; } }
     #bz-calc-root .bz-package {
       background: var(--bz-bg); border: 1px solid var(--bz-border);
-      border-radius: var(--bz-radius); padding: 20px; display: flex; flex-direction: column;
+      border-radius: 0; padding: 36px 30px; display: flex; flex-direction: column;
+      transition: box-shadow .2s;
     }
+    #bz-calc-root .bz-package:hover { box-shadow: 0 4px 20px rgba(0,0,0,.06); }
     #bz-calc-root .bz-package.bz-recommended { border-color: var(--bz-primary); border-width: 2px; }
     #bz-calc-root .bz-pkg-tag {
-      font-size: 11px; font-weight: 600; color: var(--bz-primary);
-      text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px;
+      font-size: 11px; font-weight: 700; color: var(--bz-primary);
+      text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px;
     }
-    #bz-calc-root .bz-pkg-name { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
-    #bz-calc-root .bz-pkg-desc { font-size: 13px; color: var(--bz-fg-muted); margin-bottom: 16px; }
+    #bz-calc-root .bz-pkg-name { font-size: 24px; font-weight: 600; margin-bottom: 6px; line-height: 1.2; }
+    #bz-calc-root .bz-pkg-desc { font-size: 14px; font-weight: 300; color: var(--bz-fg-muted); margin-bottom: 20px; line-height: 1.55; }
     #bz-calc-root .bz-pkg-total {
-      font-size: 26px; font-weight: 700; margin: 8px 0 16px;
+      font-size: 30px; font-weight: 700; margin: 8px 0 24px;
     }
     #bz-calc-root .bz-pkg-items {
       list-style: none; padding: 0; margin: 0; flex: 1;
-      font-size: 13px; color: var(--bz-fg);
+      font-size: 13px; color: var(--bz-fg); font-weight: 300;
     }
     #bz-calc-root .bz-pkg-items li {
-      display: flex; justify-content: space-between; gap: 8px;
-      padding: 6px 0; border-bottom: 1px solid var(--bz-bg-soft);
+      display: flex; justify-content: space-between; gap: 12px;
+      padding: 8px 0; border-bottom: 1px solid var(--bz-bg-soft);
     }
     #bz-calc-root .bz-pkg-items li.bz-pkg-section {
-      font-weight: 600; color: var(--bz-fg-muted); border-bottom: 0;
-      padding-top: 12px; padding-bottom: 4px; font-size: 12px;
-      text-transform: uppercase; letter-spacing: .03em;
+      font-weight: 600; color: var(--bz-fg); border-bottom: none;
+      padding-top: 16px; padding-bottom: 6px; font-size: 11px;
+      text-transform: uppercase; letter-spacing: .06em;
     }
-    #bz-calc-root .bz-pkg-items .bz-item-price { color: var(--bz-fg-muted); white-space: nowrap; }
-    #bz-calc-root .bz-pkg-download { margin-top: 16px; }
+    #bz-calc-root .bz-pkg-items .bz-item-price { color: var(--bz-fg-muted); white-space: nowrap; font-weight: 400; }
+    #bz-calc-root .bz-pkg-download { margin-top: 24px; width: 100%; }
 
     /* Модалка формы */
     #bz-calc-root .bz-modal {
-      position: fixed; inset: 0; background: rgba(0,0,0,.5);
+      position: fixed; inset: 0; background: rgba(0,0,0,.7);
       display: none; align-items: center; justify-content: center;
       z-index: 9999; padding: 20px;
     }
     #bz-calc-root .bz-modal.show { display: flex; }
     #bz-calc-root .bz-modal-content {
-      background: var(--bz-bg); padding: 28px; border-radius: var(--bz-radius);
-      max-width: 420px; width: 100%;
+      background: var(--bz-bg); padding: 48px 40px;
+      max-width: 460px; width: 100%;
     }
     #bz-calc-root .bz-modal-close {
-      float: right; background: 0; border: 0; font-size: 22px; cursor: pointer; color: var(--bz-fg-muted);
+      float: right; background: 0; border: 0; font-size: 24px; cursor: pointer; color: var(--bz-fg-muted);
       padding: 0; line-height: 1;
     }
+    #bz-calc-root .bz-modal-content h3 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
 
     /* Catalog status */
     #bz-calc-root .bz-catalog-info {
-      font-size: 11px; color: var(--bz-fg-muted); margin-top: 24px; text-align: center;
+      font-size: 12px; color: var(--bz-fg-muted); margin-top: 40px; text-align: center; font-weight: 300;
     }
   </style>
 
@@ -286,13 +307,36 @@
   </div>
 </div>
 
-<!-- jsPDF для генерации PDF (с поддержкой Unicode-шрифта) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-
 <script>
 (function() {
 'use strict';
+
+// ============================================================
+//       ДИНАМИЧЕСКАЯ ЗАГРУЗКА jsPDF + autotable
+// ============================================================
+// Tilda T123 блок вырезает <script src>, поэтому грузим из JS.
+const JSPDF_CDN = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+const AUTOTABLE_CDN = "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js";
+
+let _jspdfReady = null;
+function loadJsPDF() {
+  if (_jspdfReady) return _jspdfReady;
+  _jspdfReady = new Promise((resolve, reject) => {
+    if (window.jspdf && window.jspdf.jsPDF) return resolve();
+    const s1 = document.createElement("script");
+    s1.src = JSPDF_CDN;
+    s1.onload = () => {
+      const s2 = document.createElement("script");
+      s2.src = AUTOTABLE_CDN;
+      s2.onload = () => resolve();
+      s2.onerror = () => reject(new Error("jspdf-autotable load failed"));
+      document.head.appendChild(s2);
+    };
+    s1.onerror = () => reject(new Error("jspdf load failed"));
+    document.head.appendChild(s1);
+  });
+  return _jspdfReady;
+}
 
 // ============================================================
 //                   КОНФИГУРАЦИЯ
@@ -1101,17 +1145,14 @@ async function submitLead() {
 //                    ГЕНЕРАЦИЯ PDF
 // ============================================================
 
-// URL шрифтов PT Sans (SIL OFL 1.1, поддержка кириллицы).
-// Пробуем несколько CDN по очереди — на случай если один недоступен.
-// Рекомендация: можно захостить эти TTF на своём GitHub Pages
-// (рядом с catalog.json) и указать вместо CDN — будет надёжнее.
+// URL шрифтов Roboto (Apache 2.0, поддержка кириллицы).
 const FONT_URLS_REGULAR = [
-  "https://cdn.jsdelivr.net/fontsource/fonts/pt-sans@latest/cyrillic-400-normal.ttf",
-  "https://unpkg.com/@fontsource/pt-sans/files/pt-sans-cyrillic-400-normal.ttf",
+  "https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/cyrillic-400-normal.ttf",
+  "https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-400-normal.ttf",
 ];
 const FONT_URLS_BOLD = [
-  "https://cdn.jsdelivr.net/fontsource/fonts/pt-sans@latest/cyrillic-700-normal.ttf",
-  "https://unpkg.com/@fontsource/pt-sans/files/pt-sans-cyrillic-700-normal.ttf",
+  "https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/cyrillic-700-normal.ttf",
+  "https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-700-normal.ttf",
 ];
 
 let _fontCache = null;
@@ -1121,10 +1162,10 @@ async function loadFontBase64(urls) {
   let lastError = null;
   for (const url of urls) {
     try {
-      const r = await fetch(url);
+      const r = await fetch(url, { mode: "cors" });
       if (!r.ok) { lastError = new Error("HTTP " + r.status); continue; }
       const buf = await r.arrayBuffer();
-      if (buf.byteLength < 1000) { lastError = new Error("файл слишком мал"); continue; }
+      if (buf.byteLength < 5000) { lastError = new Error("файл слишком мал (" + buf.byteLength + ")"); continue; }
       const bytes = new Uint8Array(buf);
       let bin = "";
       const chunk = 0x8000;
@@ -1159,19 +1200,28 @@ async function ensureFontLoaded() {
 }
 
 async function generatePDF(pkg, clientName) {
+  // Убеждаемся что jsPDF загружен
+  await loadJsPDF();
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    throw new Error("jsPDF не загружен");
+  }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "mm", format: "a4" });
 
   // Грузим шрифт (один раз за сессию)
   const font = await ensureFontLoaded();
+  let FONT = "helvetica";
   if (font.ok) {
-    doc.addFileToVFS("PTSans-Regular.ttf", font.regular);
-    doc.addFont("PTSans-Regular.ttf", "PTSans", "normal");
-    doc.addFileToVFS("PTSans-Bold.ttf", font.bold);
-    doc.addFont("PTSans-Bold.ttf", "PTSans", "bold");
-    doc.setFont("PTSans", "normal");
+    try {
+      doc.addFileToVFS("Roboto-Regular.ttf", font.regular);
+      doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
+      doc.addFileToVFS("Roboto-Bold.ttf", font.bold);
+      doc.addFont("Roboto-Bold.ttf", "Roboto", "bold");
+      FONT = "Roboto";
+    } catch (e) {
+      console.warn("[BZ] ошибка регистрации шрифта, fallback на helvetica:", e);
+    }
   }
-  const FONT = font.ok ? "PTSans" : "helvetica";
 
   const pkgLabel = { basic: "Базово", comfort: "Комфорт", lux: "Люкс" }[pkg];
   const data = STATE.packages[pkg];
@@ -1222,8 +1272,8 @@ async function generatePDF(pkg, clientName) {
     ]);
   }
   rows.push([
-    { content: "ИТОГО", styles: { fontStyle: "bold", fillColor: [37, 99, 235], textColor: [255, 255, 255] } },
-    { content: fmtRub(data.total), styles: { fontStyle: "bold", fillColor: [37, 99, 235], textColor: [255, 255, 255], halign: "right" } },
+    { content: "ИТОГО", styles: { fontStyle: "bold", fillColor: [255, 133, 98], textColor: [255, 255, 255] } },
+    { content: fmtRub(data.total), styles: { fontStyle: "bold", fillColor: [255, 133, 98], textColor: [255, 255, 255], halign: "right" } },
   ]);
 
   doc.autoTable({
@@ -1234,7 +1284,7 @@ async function generatePDF(pkg, clientName) {
     ]],
     body: rows,
     styles: { font: FONT, fontSize: 9, cellPadding: 2.5, lineColor: [220, 220, 230], lineWidth: 0.1 },
-    headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255], fontStyle: "bold" },
+    headStyles: { fillColor: [255, 133, 98], textColor: [255, 255, 255], fontStyle: "bold" },
     columnStyles: { 0: { cellWidth: 140 }, 1: { halign: "right", cellWidth: 40 } },
     didParseCell: function(data) {
       // Уменьшаем шрифт для пояснений (строки с переносом)
@@ -1275,6 +1325,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   await loadCatalog();
   validateSurvey();
+
+  // Предзагрузка jsPDF и шрифтов в фоне — к моменту нажатия «Скачать» всё готово
+  loadJsPDF().catch(() => {});
+  ensureFontLoaded().catch(() => {});
 });
 
 })();
