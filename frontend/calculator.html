@@ -1145,15 +1145,13 @@ async function submitLead() {
 //                    ГЕНЕРАЦИЯ PDF
 // ============================================================
 
-// URL шрифтов Roboto (Apache 2.0, поддержка кириллицы).
-const FONT_URLS_REGULAR = [
-  "https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/cyrillic-400-normal.ttf",
-  "https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-400-normal.ttf",
-];
-const FONT_URLS_BOLD = [
-  "https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/cyrillic-700-normal.ttf",
-  "https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-700-normal.ttf",
-];
+// Шрифты PT Sans (SIL OFL 1.1, кириллица) — лежат рядом в ./fonts/
+// Но на boris-hvac.ru калькулятор вставлен в Tilda, поэтому
+// указываем абсолютный URL к GitHub Pages где лежат шрифты.
+// >>>> При смене хостинга — поменяйте базовый URL
+const FONT_URL_BASE = "https://borishvac.github.io/boris-hvac/frontend/fonts/";
+const FONT_URLS_REGULAR = [FONT_URL_BASE + "ptsans-regular.ttf"];
+const FONT_URLS_BOLD = [FONT_URL_BASE + "ptsans-bold.ttf"];
 
 let _fontCache = null;
 let _fontLoadingPromise = null;
@@ -1213,11 +1211,11 @@ async function generatePDF(pkg, clientName) {
   let FONT = "helvetica";
   if (font.ok) {
     try {
-      doc.addFileToVFS("Roboto-Regular.ttf", font.regular);
-      doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
-      doc.addFileToVFS("Roboto-Bold.ttf", font.bold);
-      doc.addFont("Roboto-Bold.ttf", "Roboto", "bold");
-      FONT = "Roboto";
+      doc.addFileToVFS("PTSans-Regular.ttf", font.regular);
+      doc.addFont("PTSans-Regular.ttf", "PTSans", "normal");
+      doc.addFileToVFS("PTSans-Bold.ttf", font.bold);
+      doc.addFont("PTSans-Bold.ttf", "PTSans", "bold");
+      FONT = "PTSans";
     } catch (e) {
       console.warn("[BZ] ошибка регистрации шрифта, fallback на helvetica:", e);
     }
